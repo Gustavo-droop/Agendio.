@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">Agendio — Sistema de Agendamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0d0d0d;--cream:#f5f0e8;--rust:#c8440a;--gold:#d4a843;
+  --smoke:#2a2a2a;--mid:#555;--green:#2d7a4f;--red:#b03030;--orange:#c87010;--wa:#25d366;
+  --accent:#c8440a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--cream);min-height:100vh;}
+
+/* HEADER */
+header{background:var(--smoke);border-bottom:3px solid var(--accent);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--gold);}
+.logo span{color:var(--cream);}
+.logo small{font-size:10px;letter-spacing:1px;display:block;color:var(--mid);font-family:'DM Sans',sans-serif;margin-top:-3px;}
+.admin-link{font-size:12px;color:var(--mid);text-decoration:none;border:1px solid var(--mid);padding:5px 10px;border-radius:4px;transition:all .2s;}
+.admin-link:hover{color:var(--gold);border-color:var(--gold);}
+.lock-banner{background:var(--red);color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:600;display:none;}
+.lock-banner.visible{display:block;}
+
+/* SCREENS */
+.screen{display:none;padding:20px 18px;max-width:480px;margin:0 auto;}
+.screen.active{display:block;}
+h2{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;margin-bottom:6px;}
+h3{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;margin-bottom:12px;}
+.subtitle{color:var(--mid);font-size:13px;margin-bottom:20px;}
+
+/* SETUP WIZARD */
+.wizard-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 18px;}
+.wizard-box{background:var(--smoke);border-radius:16px;padding:32px 24px;width:100%;max-width:420px;border:1px solid #3a3a3a;text-align:center;}
+.wizard-icon{font-size:56px;margin-bottom:16px;}
+.wizard-box h2{font-size:26px;margin-bottom:6px;}
+.wizard-box .subtitle{margin-bottom:22px;}
+.business-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;text-align:left;}
+.btype{padding:12px 10px;background:var(--ink);border:2px solid #3a3a3a;border-radius:8px;cursor:pointer;font-size:13px;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.btype:hover{border-color:var(--gold);}
+.btype.selected{border-color:var(--gold);background:#2a2500;}
+.btype .btype-icon{font-size:18px;}
+.wizard-steps{display:flex;justify-content:center;gap:6px;margin-bottom:20px;}
+.wstep{width:8px;height:8px;border-radius:50%;background:#3a3a3a;transition:all .3s;}
+.wstep.active{background:var(--gold);width:20px;border-radius:4px;}
+.wstep.done{background:var(--green);}
+
+/* LANDING */
+.landing-hero{background:linear-gradient(135deg,#1a0804 0%,var(--smoke) 100%);border-radius:14px;padding:28px 22px;margin-bottom:14px;border:1px solid #3a2010;text-align:center;position:relative;overflow:hidden;}
+.landing-hero::before{content:'';position:absolute;right:-15px;top:-15px;font-size:110px;opacity:.05;transform:rotate(20deg);}
+.landing-hero h1{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;color:var(--gold);margin-bottom:3px;}
+.landing-hero .biz-type-label{font-size:11px;color:var(--mid);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;}
+.landing-hero .barber-name{color:var(--cream);font-size:16px;font-weight:600;margin-bottom:4px;}
+.landing-hero .shop-address{font-size:12px;color:var(--mid);margin-bottom:16px;}
+.open-badge{display:inline-flex;align-items:center;gap:6px;background:#0d2a1a;border:1px solid var(--green);color:var(--green);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px;}
+.open-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);}}
+.closed-badge{display:inline-flex;align-items:center;gap:6px;background:#2a0a0a;border:1px solid var(--red);color:var(--red);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px;}
+.hours-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:18px;}
+.hour-block{background:#1a1a1a;border-radius:8px;padding:9px;text-align:center;font-size:11px;color:var(--mid);}
+.hour-block .hday{font-weight:600;color:var(--cream);margin-bottom:1px;font-size:11px;}
+.hot-slots{background:linear-gradient(135deg,#1a2a10,#0d1a08);border:2px solid var(--green);border-radius:12px;padding:13px 15px;margin-bottom:13px;}
+.hot-slots-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--green);margin-bottom:9px;}
+.hot-slot-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a3a1a;}
+.hot-slot-item:last-child{border:none;}
+.hot-slot-time{font-weight:700;font-size:14px;}
+.hot-slot-label{font-size:10px;color:var(--green);font-weight:600;}
+.book-now-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;}
+
+/* DAYS */
+.days-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.day-card{background:var(--smoke);border:2px solid transparent;border-radius:10px;padding:15px 13px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.day-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent);}
+.day-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.day-card .day-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--gold);}
+.day-card .day-date{font-size:11px;color:var(--mid);margin-top:2px;}
+.day-card .slot-count{font-size:12px;margin-top:6px;color:var(--cream);}
+.day-card .slot-count span{color:var(--green);font-weight:600;}
+.day-card.no-slots{opacity:.5;cursor:not-allowed;}
+.day-card.no-slots:hover{transform:none;border-color:transparent;}
+.day-card.day-off{opacity:.4;cursor:not-allowed;}
+.day-card.day-off::before{background:var(--mid);}
+.day-card.day-off:hover{transform:none;border-color:transparent;}
+.day-card.locked-day{opacity:.45;cursor:not-allowed;}
+.day-card.locked-day::before{background:var(--red);}
+.day-card.locked-day:hover{transform:none;border-color:transparent;}
+.day-card.has-available::after{content:'⚡ Agora!';position:absolute;top:7px;right:7px;font-size:9px;background:var(--green);color:#fff;padding:2px 6px;border-radius:10px;font-weight:600;}
+
+/* SLOTS */
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--mid);font-size:13px;cursor:pointer;margin-bottom:16px;border:none;background:none;font-family:'DM Sans',sans-serif;padding:0;}
+.back-btn:hover{color:var(--cream);}
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.slot-btn{background:var(--smoke);border:2px solid transparent;color:var(--cream);border-radius:8px;padding:12px 6px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .2s;position:relative;}
+.slot-btn:hover{border-color:var(--accent);background:#3a2020;}
+.slot-btn.selected{border-color:var(--gold);background:#3a3010;color:var(--gold);}
+.slot-btn.just-freed{border-color:var(--green);animation:freed-pulse 1.5s ease-in-out 3;}
+.slot-btn.just-freed::after{content:'🔥';position:absolute;top:-8px;right:-4px;font-size:11px;}
+@keyframes freed-pulse{0%,100%{box-shadow:0 0 0 0 rgba(45,122,79,.4);}50%{box-shadow:0 0 0 10px rgba(45,122,79,0);}}
+
+/* FORM */
+.booking-form{display:flex;flex-direction:column;gap:12px;}
+.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mid);margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--smoke);border:2px solid #3a3a3a;border-radius:8px;color:var(--cream);padding:12px 13px;font-family:'DM Sans',sans-serif;font-size:15px;transition:border .2s;appearance:none;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold);}
+.field select option{background:#222;}
+.summary-box{background:var(--smoke);border-left:4px solid var(--accent);border-radius:8px;padding:13px;font-size:14px;line-height:1.7;margin-bottom:16px;}
+.summary-box strong{color:var(--gold);}
+
+/* BUTTONS */
+.btn{width:100%;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;border:none;border-radius:8px;cursor:pointer;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.btn-secondary{background:var(--smoke);color:var(--cream);border:2px solid #3a3a3a;}
+.btn-secondary:hover{border-color:var(--mid);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#c83030;transform:translateY(-1px);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#35905a;transform:translateY(-1px);}
+.btn-wa{background:var(--wa);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-wa:hover{background:#1ebe5a;transform:translateY(-1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-sm{padding:7px 13px;font-size:13px;letter-spacing:1px;width:auto;border:none;border-radius:6px;cursor:pointer;transition:all .2s;font-family:'Bebas Neue',sans-serif;}
+
+/* SUCCESS */
+.success-icon{font-size:52px;text-align:center;margin:14px 0;}
+.success-card{background:var(--smoke);border:2px solid var(--green);border-radius:12px;padding:16px;margin:14px 0;}
+.success-card .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #3a3a3a;font-size:13px;}
+.success-card .row:last-child{border:none;}
+.success-card .row span:first-child{color:var(--mid);}
+.success-card .row span:last-child{font-weight:600;}
+.cancel-section{background:#1a0a0a;border:1px solid #3a1010;border-radius:10px;padding:13px;margin-top:10px;}
+.cancel-code-box{background:#0d0d0d;border:1px solid #3a3a3a;border-radius:6px;padding:9px;text-align:center;margin-bottom:8px;}
+.cancel-code{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:6px;color:var(--gold);}
+.cancel-code-label{font-size:10px;color:var(--mid);margin-top:1px;}
+.reminder-notice{background:#0d1a2a;border:1px solid #1a3a5a;border-radius:8px;padding:11px 13px;font-size:12px;color:#6ab0e0;line-height:1.5;margin-top:8px;}
+
+/* CANCEL */
+.cancel-box{background:var(--smoke);border-radius:12px;padding:22px 18px;margin-top:24px;border:1px solid #3a3a3a;}
+
+/* ADMIN LOGIN */
+.login-box{background:var(--smoke);border-radius:12px;padding:26px 20px;margin-top:30px;border:1px solid #3a3a3a;}
+
+/* ADMIN */
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.logout-btn{background:none;border:1px solid var(--mid);color:var(--mid);padding:5px 10px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;}
+.logout-btn:hover{color:var(--red);border-color:var(--red);}
+.admin-nav{display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid #2a2a2a;overflow-x:auto;scrollbar-width:none;}
+.admin-nav::-webkit-scrollbar{display:none;}
+.admin-nav-btn{flex-shrink:0;padding:8px 11px;background:none;border:none;color:var(--mid);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;}
+.admin-nav-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.admin-nav-btn:hover{color:var(--cream);}
+
+/* LOCK BOX */
+.lock-box{background:var(--smoke);border-radius:10px;padding:17px;margin-bottom:13px;border:2px solid var(--red);}
+.lock-box.unlocked{border-color:#3a3a3a;}
+.lock-box h3{color:var(--red);margin-bottom:7px;}
+.lock-box.unlocked h3{color:var(--cream);}
+.lock-box p{font-size:12px;color:var(--mid);margin-bottom:11px;line-height:1.5;}
+.lock-status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:11px;}
+.lock-dot{width:9px;height:9px;border-radius:50%;background:var(--green);}
+.lock-dot.red{background:var(--red);animation:blink .8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* DAY TABS */
+.day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.day-tab{flex-shrink:0;padding:6px 13px;background:var(--smoke);border:2px solid transparent;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--mid);transition:all .2s;}
+.day-tab.active{border-color:var(--gold);color:var(--gold);}
+.day-tab.is-off{text-decoration:line-through;opacity:.5;}
+
+/* APPOINTMENTS */
+.appointment-card{background:var(--smoke);border-radius:10px;padding:13px;margin-bottom:8px;border-left:4px solid var(--accent);transition:all .2s;}
+.appointment-card.arrived{border-color:var(--green);opacity:.7;}
+.appointment-card.cancelled-card{border-color:var(--mid);opacity:.5;}
+.appointment-card .time-badge{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);letter-spacing:1px;}
+.appointment-card .client-name{font-weight:600;font-size:14px;margin-top:3px;}
+.appointment-card .client-phone{font-size:12px;color:var(--mid);margin-top:1px;}
+.appointment-card .card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:6px;}
+.arrived-btn{background:var(--green);color:#fff;border:none;border-radius:6px;padding:6px 13px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+.arrived-btn:hover{background:#358f5c;}
+.arrived-badge{background:#1a3a28;color:var(--green);border:1px solid var(--green);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;}
+.cancelled-badge{background:#1a1a1a;color:var(--mid);border:1px solid #3a3a3a;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;}
+.countdown-badge{font-size:11px;color:var(--rust);font-weight:600;background:#3a1010;padding:4px 8px;border-radius:10px;animation:blink .8s ease-in-out infinite;}
+.empty-state{text-align:center;padding:32px 0;color:var(--mid);}
+.empty-state .icon{font-size:34px;margin-bottom:9px;}
+
+/* SETTINGS */
+.settings-section{background:var(--smoke);border-radius:10px;padding:17px;margin-bottom:12px;}
+.settings-section h3{color:var(--gold);margin-bottom:13px;}
+.week-days-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:7px;}
+.day-toggle{padding:8px 3px;border:2px solid #3a3a3a;border-radius:7px;text-align:center;cursor:pointer;font-size:11px;font-weight:600;background:var(--smoke);color:var(--mid);transition:all .2s;user-select:none;}
+.day-toggle.on{border-color:var(--green);color:var(--green);background:#0d2a1a;}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.interval-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px;}
+.off-dates-list{margin-bottom:10px;}
+.off-date-item{display:flex;justify-content:space-between;align-items:center;background:#1a1a1a;border-radius:6px;padding:8px 12px;margin-bottom:5px;font-size:12px;}
+.off-date-item .remove-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;line-height:1;}
+.add-off-row{display:flex;gap:7px;}
+.add-off-row input{flex:1;background:var(--smoke);border:2px solid #3a3a3a;border-radius:8px;color:var(--cream);padding:9px 11px;font-family:'DM Sans',sans-serif;font-size:13px;}
+.add-off-row input:focus{outline:none;border-color:var(--gold);}
+
+/* PASSWORD SECTION */
+.pw-section{background:var(--smoke);border-radius:10px;padding:17px;margin-bottom:12px;border:1px solid #3a2a0a;}
+.pw-section h3{color:var(--gold);margin-bottom:6px;}
+.pw-section p{font-size:12px;color:var(--mid);margin-bottom:13px;line-height:1.5;}
+.pw-strength{height:4px;border-radius:2px;margin-top:6px;background:#3a3a3a;overflow:hidden;}
+.pw-strength-bar{height:100%;border-radius:2px;transition:all .3s;width:0;}
+
+/* REMINDER */
+.reminder-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #2a2a2a;font-size:13px;}
+.reminder-item:last-child{border:none;}
+.reminder-item span{color:var(--mid);font-size:12px;}
+.toggle-switch{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:#3a3a3a;border-radius:10px;transition:.3s;}
+.slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+input:checked+.slider{background:var(--green);}
+input:checked+.slider:before{transform:translateX(16px);}
+
+.divider{border:none;border-top:1px solid #2a2a2a;margin:13px 0;}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;transition:transform .3s;z-index:1000;white-space:nowrap;max-width:92vw;text-align:center;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.warn{background:var(--rust);}
+
+@media(max-width:360px){
+  .days-grid{grid-template-columns:1fr;}
+  .slots-grid{grid-template-columns:repeat(2,1fr);}
+  .week-days-grid{grid-template-columns:repeat(3,1fr);}
+  .business-types{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- FIRST-TIME SETUP WIZARD (shown if no password set) -->
+<div id="setup-wizard" style="display:none;">
+  <div class="wizard-wrap">
+    <div class="wizard-box">
+
+      <!-- Step 1: Business type -->
+      <div id="wizard-step-1">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;color:var(--gold);margin-bottom:2px;">Agendio</div>
+        <div style="font-size:11px;color:var(--mid);letter-spacing:2px;margin-bottom:16px;">SISTEMA DE AGENDAMENTO</div>
+        <h2 style="font-size:22px;">Bem-vindo! 👋</h2>
+        <p class="subtitle">Vamos configurar seu sistema. Primeiro, qual é o seu negócio?</p>
+        <div class="wizard-steps"><div class="wstep active"></div><div class="wstep"></div><div class="wstep"></div></div>
+        <div class="business-types" id="btype-grid"></div>
+        <button class="btn btn-primary" onclick="wizardNext(1)">Continuar →</button>
+      </div>
+
+      <!-- Step 2: Business info -->
+      <div id="wizard-step-2" style="display:none;">
+        <div class="wizard-icon" id="wizard-btype-icon">✂️</div>
+        <h2>Sobre seu negócio</h2>
+        <p class="subtitle">Como seus clientes vão te reconhecer?</p>
+        <div class="wizard-steps"><div class="wstep done"></div><div class="wstep active"></div><div class="wstep"></div></div>
+        <div class="booking-form" style="margin-bottom:18px;text-align:left;">
+          <div class="field"><label>Nome do negócio</label><input type="text" id="wiz-shop-name" placeholder="Ex: Studio da Ana" maxlength="50"></div>
+          <div class="field"><label>Seu nome (profissional)</label><input type="text" id="wiz-barber-name" placeholder="Ex: Ana Lima" maxlength="40"></div>
+          <div class="field"><label>Número do WhatsApp (com DDD)</label><input type="tel" id="wiz-wa-number" placeholder="11999999999" maxlength="15"></div>
+        </div>
+        <button class="btn btn-primary" onclick="wizardNext(2)">Continuar →</button>
+        <button class="back-btn" onclick="wizardBack(1)" style="margin-top:10px;width:100%;justify-content:center;">← Voltar</button>
+      </div>
+
+      <!-- Step 3: Create password -->
+      <div id="wizard-step-3" style="display:none;">
+        <div class="wizard-icon">🔐</div>
+        <h2>Crie sua senha</h2>
+        <p class="subtitle">Esta senha protege o painel administrativo. Escolha uma senha que só você saiba.</p>
+        <div class="wizard-steps"><div class="wstep done"></div><div class="wstep done"></div><div class="wstep active"></div></div>
+        <div class="booking-form" style="margin-bottom:18px;text-align:left;">
+          <div class="field">
+            <label>Nova senha</label>
+            <input type="password" id="wiz-pw1" placeholder="Mínimo 4 caracteres" maxlength="30" oninput="checkPwStrength('wiz-pw1','pw-strength-bar')">
+            <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
+          </div>
+          <div class="field"><label>Confirmar senha</label><input type="password" id="wiz-pw2" placeholder="Repita a senha" maxlength="30"></div>
+        </div>
+        <button class="btn btn-primary" onclick="wizardFinish()">Criar sistema ✓</button>
+        <button class="back-btn" onclick="wizardBack(2)" style="margin-top:10px;width:100%;justify-content:center;">← Voltar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" style="display:none;">
+
+<header>
+  <div class="logo">
+    <span id="header-shop-name">Agendio</span>
+    <small id="header-biz-type">Sistema de Agendamento</small>
+  </div>
+  <a href="#" class="admin-link" onclick="goToLogin();return false;">Admin</a>
+</header>
+<div id="lock-banner" class="lock-banner">🔒 Agenda fechada temporariamente — tente novamente mais tarde</div>
+<div id="toast"></div>
+
+<!-- LANDING -->
+<div id="screen-landing" class="screen active">
+  <div class="landing-hero">
+    <div class="biz-type-label" id="hero-biz-label"></div>
+    <h1 id="hero-shop-name">Seu Negócio</h1>
+    <div class="barber-name" id="hero-barber-name"></div>
+    <div class="shop-address" id="hero-address"></div>
+    <div id="open-status-badge"></div>
+    <div class="hours-strip" id="hours-strip"></div>
+    <button class="btn btn-primary" onclick="showScreen('screen-days')" style="max-width:260px;margin:0 auto;display:block;font-size:17px;">📅 Agendar Agora</button>
+  </div>
+  <div id="hot-slots-section" style="display:none;"></div>
+  <div style="text-align:center;margin-top:6px;">
+    <button class="back-btn" onclick="showCancelScreen()" style="font-size:12px;">Cancelar um agendamento</button>
+  </div>
+  <div style="text-align:center;padding:20px 0 8px;font-size:11px;color:#333;letter-spacing:1px;">
+    Powered by <span style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;color:#444;font-size:13px;">Agendio</span>
+  </div>
+</div>
+
+<!-- DAYS -->
+<div id="screen-days" class="screen">
+  <button class="back-btn" onclick="showScreen('screen-landing')">← Voltar</button>
+  <h2>Escolha o Dia</h2>
+  <p class="subtitle">Dias disponíveis para agendamento</p>
+  <div class="days-grid" id="days-grid"></div>
+</div>
+
+<!-- SLOTS -->
+<div id="screen-slots" class="screen">
+  <button class="back-btn" onclick="showScreen('screen-days')">← Voltar</button>
+  <h2 id="slots-day-title"></h2>
+  <p class="subtitle" id="slots-day-date"></p>
+  <div class="slots-grid" id="slots-grid"></div>
+  <button class="btn btn-primary" id="btn-continue-slots" disabled onclick="showFormScreen()">Continuar</button>
+</div>
+
+<!-- FORM -->
+<div id="screen-form" class="screen">
+  <button class="back-btn" onclick="showScreen('screen-slots')">← Voltar</button>
+  <h2>Seus Dados</h2>
+  <p class="subtitle">Confirme o horário abaixo</p>
+  <div class="summary-box" id="booking-summary"></div>
+  <div class="booking-form">
+    <div class="field"><label>Nome completo</label><input type="text" id="client-name" placeholder="Ex: João Silva" maxlength="60"></div>
+    <div class="field"><label>WhatsApp / Telefone</label><input type="tel" id="client-phone" placeholder="(11) 99999-9999" maxlength="20"></div>
+    <button class="btn btn-primary" onclick="confirmBooking()">Confirmar Agendamento</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div id="screen-success" class="screen">
+  <div class="success-icon">✅</div>
+  <h2 style="text-align:center;">Agendado!</h2>
+  <p class="subtitle" style="text-align:center;">Seu horário está confirmado</p>
+  <div class="success-card" id="success-details"></div>
+  <button class="btn btn-wa" id="btn-whatsapp" onclick="openWhatsApp()" style="margin-top:10px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    Confirmar pelo WhatsApp
+  </button>
+  <div class="reminder-notice" id="reminder-notice" style="display:none;">📲 Você receberá um lembrete no WhatsApp antes do seu horário.</div>
+  <div class="cancel-section">
+    <p style="font-size:12px;color:var(--mid);margin-bottom:9px;">Precisa cancelar? Anote seu código:</p>
+    <div class="cancel-code-box">
+      <div class="cancel-code" id="cancel-code-display">—</div>
+      <div class="cancel-code-label">Código de cancelamento</div>
+    </div>
+    <p style="font-size:11px;color:#444;">Guarde este código para cancelar pelo site.</p>
+  </div>
+  <hr class="divider">
+  <button class="btn btn-secondary" onclick="showScreen('screen-landing')" style="margin-top:4px;">Voltar ao início</button>
+</div>
+
+<!-- CANCEL -->
+<div id="screen-cancel" class="screen">
+  <button class="back-btn" onclick="showScreen('screen-landing')">← Voltar</button>
+  <h2>Cancelar Agendamento</h2>
+  <p class="subtitle">Digite o código recebido na confirmação</p>
+  <div class="cancel-box">
+    <div class="booking-form">
+      <div class="field"><label>Código de cancelamento</label><input type="text" id="cancel-code-input" placeholder="Ex: A4B7" maxlength="6" style="text-transform:uppercase;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;text-align:center;"></div>
+      <button class="btn btn-danger" onclick="processCancellation()">Cancelar Meu Agendamento</button>
+    </div>
+  </div>
+  <div id="cancel-result" style="margin-top:12px;"></div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="screen-login" class="screen">
+  <div class="login-box">
+    <h2>Painel Admin</h2>
+    <p class="subtitle">Acesso restrito ao proprietário</p>
+    <div class="booking-form">
+      <div class="field"><label>Senha</label><input type="password" id="admin-password" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+      <button class="btn btn-primary" onclick="adminLogin()">Entrar</button>
+      <button class="btn btn-secondary" onclick="showScreen('screen-landing')" style="margin-top:4px;">Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="screen-admin" class="screen">
+  <div class="admin-header">
+    <h2>Painel</h2>
+    <button class="logout-btn" onclick="adminLogout()">Sair</button>
+  </div>
+  <div class="admin-nav">
+    <button class="admin-nav-btn active" onclick="switchAdminTab('agenda',this)">📋 Agenda</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('lock',this)">🔒 Bloqueio</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('reminder',this)">📲 WA</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('settings',this)">⚙️ Config</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('security',this)">🔑 Senha</button>
+  </div>
+
+  <div id="admin-tab-agenda">
+    <div class="day-tabs" id="admin-day-tabs"></div>
+    <div id="admin-appointments"></div>
+  </div>
+  <div id="admin-tab-lock" style="display:none;"><div id="lock-box-container"></div></div>
+  <div id="admin-tab-reminder" style="display:none;">
+    <div class="settings-section">
+      <h3>📲 Lembretes via WhatsApp</h3>
+      <p style="font-size:12px;color:var(--mid);margin-bottom:13px;line-height:1.5;">Configure quando os clientes recebem lembretes automáticos.</p>
+      <div class="reminder-item">
+        <div><strong style="font-size:13px;">Lembrete 1h antes</strong><br><span>Link de confirmação 1 hora antes</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="rem-1h" checked><span class="slider"></span></label>
+      </div>
+      <div class="reminder-item">
+        <div><strong style="font-size:13px;">Lembrete no dia de manhã</strong><br><span>Às 8h do dia do agendamento</span></div>
+        <label class="toggle-switch"><input type="checkbox" id="rem-morning"><span class="slider"></span></label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Número do WhatsApp</h3>
+      <div class="field"><label>Número (com DDD, só números)</label><input type="tel" id="wa-number" placeholder="11999999999" maxlength="15"></div>
+      <div style="margin-top:10px;"></div>
+      <button class="btn btn-primary" onclick="saveReminderSettings()" style="font-size:15px;padding:11px;">Salvar</button>
+    </div>
+    <div style="background:var(--smoke);border-radius:10px;padding:13px;font-size:12px;color:var(--mid);line-height:1.6;">
+      💡 Após o cliente agendar, um botão abre o WhatsApp com a mensagem pronta. Em cada card da agenda, você pode enviar um lembrete manualmente com um clique.
+    </div>
+  </div>
+
+  <div id="admin-tab-settings" style="display:none;">
+    <div class="settings-section">
+      <h3 id="settings-biz-icon">🏪 Seu Negócio</h3>
+      <div class="booking-form">
+        <div class="field">
+          <label>Tipo de negócio</label>
+          <select id="biz-type-select"></select>
+        </div>
+        <div class="field"><label>Nome do negócio</label><input type="text" id="shop-name" placeholder="Ex: Studio da Ana" maxlength="50"></div>
+        <div class="field"><label>Seu nome (profissional)</label><input type="text" id="barber-name" placeholder="Ex: Ana Lima" maxlength="40"></div>
+        <div class="field"><label>Endereço (opcional)</label><input type="text" id="shop-address" placeholder="Ex: Rua das Flores, 123" maxlength="80"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>📅 Dias de Trabalho</h3>
+      <div class="week-days-grid" id="work-days-grid"></div>
+      <p style="font-size:11px;color:var(--mid);margin-top:5px;">Toque para ativar/desativar</p>
+    </div>
+    <div class="settings-section">
+      <h3>🕐 Horário e Intervalos</h3>
+      <div class="time-row">
+        <div class="field"><label>Início</label><input type="time" id="work-start"></div>
+        <div class="field"><label>Fim</label><input type="time" id="work-end"></div>
+      </div>
+      <div class="interval-row">
+        <div class="field">
+          <label>Duração do atendimento</label>
+          <select id="slot-interval">
+            <option value="15">15 minutos</option>
+            <option value="30">30 minutos</option>
+            <option value="45">45 minutos</option>
+            <option value="60">60 minutos</option>
+            <option value="90">90 minutos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Pausa almoço</label>
+          <select id="lunch-break">
+            <option value="none">Sem pausa</option>
+            <option value="12:00-13:00">12h – 13h</option>
+            <option value="12:00-14:00">12h – 14h</option>
+            <option value="13:00-14:00">13h – 14h</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>🚫 Folgas e Feriados</h3>
+      <div class="off-dates-list" id="off-dates-list"></div>
+      <div class="add-off-row">
+        <input type="date" id="new-off-date">
+        <button class="btn-sm" style="background:var(--orange);color:#fff;" onclick="addOffDate()">+ Adicionar</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Salvar Configurações</button>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- SECURITY TAB -->
+  <div id="admin-tab-security" style="display:none;">
+    <div class="pw-section">
+      <h3>🔑 Alterar Senha</h3>
+      <p>Escolha uma senha segura que só você conheça. Mínimo de 4 caracteres.</p>
+      <div class="booking-form">
+        <div class="field"><label>Senha atual</label><input type="password" id="pw-current" placeholder="Digite sua senha atual" maxlength="30"></div>
+        <div class="field">
+          <label>Nova senha</label>
+          <input type="password" id="pw-new" placeholder="Nova senha (mín. 4 caracteres)" maxlength="30" oninput="checkPwStrength('pw-new','pw-bar2')">
+          <div class="pw-strength"><div class="pw-strength-bar" id="pw-bar2"></div></div>
+        </div>
+        <div class="field"><label>Confirmar nova senha</label><input type="password" id="pw-confirm" placeholder="Repita a nova senha" maxlength="30"></div>
+        <button class="btn btn-primary" onclick="changePassword()" style="font-size:16px;padding:12px;">Alterar Senha</button>
+      </div>
+    </div>
+    <div style="background:var(--smoke);border-radius:10px;padding:14px;font-size:12px;color:var(--mid);line-height:1.6;">
+      🔒 Sua senha é armazenada localmente neste dispositivo. Nunca compartilhe com ninguém além de você.
+    </div>
+  </div>
+</div>
+
+</div><!-- /main-app -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  BUSINESS TYPES
+// ═══════════════════════════════════════════════════════
+const BUSINESS_TYPES = [
+  {id:'barbearia',   label:'Barbearia',       icon:'💈', color:'#c8440a', service:'corte'},
+  {id:'salao',       label:'Salão de Beleza',  icon:'💇', color:'#b0308a', service:'serviço'},
+  {id:'clinica',     label:'Clínica / Saúde',  icon:'🏥', color:'#2d7a4f', service:'consulta'},
+  {id:'tatuagem',    label:'Estúdio de Tattoo',icon:'🎨', color:'#4a30c8', service:'sessão'},
+  {id:'manicure',    label:'Manicure / Nail',  icon:'💅', color:'#c83070', service:'atendimento'},
+  {id:'personal',    label:'Personal Trainer', icon:'💪', color:'#c87010', service:'treino'},
+  {id:'estetica',    label:'Estética',         icon:'✨', color:'#708030', service:'procedimento'},
+  {id:'outro',       label:'Outro negócio',    icon:'🏪', color:'#555',    service:'atendimento'},
+];
+
+// ═══════════════════════════════════════════════════════
+//  STORAGE
+// ═══════════════════════════════════════════════════════
+const DEFAULT_SETTINGS = {
+  shopName:'Meu Negócio', barberName:'Profissional', shopAddress:'',
+  bizType:'barbearia', workDays:[1,2,3,4,5,6],
+  startTime:'08:00', endTime:'18:00', intervalMin:30,
+  lunchBreak:'none', offDates:[], locked:false, lockedSince:null,
+  waNumber:'', rem1h:true, remMorning:false
+};
+const NO_SHOW_TIMEOUT = 10 * 60 * 1000;
+
+function loadDB(){try{return JSON.parse(localStorage.getItem('af_db')||'{"appointments":{}}');}catch{return{appointments:{}};}}
+function saveDB(db){localStorage.setItem('af_db',JSON.stringify(db));}
+function loadSettings(){try{const s=JSON.parse(localStorage.getItem('af_cfg')||'null');return s?{...DEFAULT_SETTINGS,...s}:{...DEFAULT_SETTINGS};}catch{return{...DEFAULT_SETTINGS};}}
+function persistSettings(s){localStorage.setItem('af_cfg',JSON.stringify(s));}
+function getAdminPw(){return localStorage.getItem('af_pw')||'';}
+function setAdminPw(pw){localStorage.setItem('af_pw',pw);}
+function isSetupDone(){return !!localStorage.getItem('af_pw');}
+
+// ═══════════════════════════════════════════════════════
+//  SETUP WIZARD
+// ═══════════════════════════════════════════════════════
+let wizardBizType = BUSINESS_TYPES[0];
+
+function initWizard(){
+  const grid = document.getElementById('btype-grid');
+  BUSINESS_TYPES.forEach(bt => {
+    const el = document.createElement('div');
+    el.className = 'btype' + (bt.id === wizardBizType.id ? ' selected' : '');
+    el.innerHTML = `<span class="btype-icon">${bt.icon}</span>${bt.label}`;
+    el.onclick = () => {
+      document.querySelectorAll('.btype').forEach(b=>b.classList.remove('selected'));
+      el.classList.add('selected'); wizardBizType = bt;
+    };
+    grid.appendChild(el);
+  });
+}
+
+function wizardNext(step){
+  if(step === 1){
+    document.getElementById('wizard-step-1').style.display='none';
+    document.getElementById('wizard-step-2').style.display='block';
+    document.getElementById('wizard-btype-icon').textContent=wizardBizType.icon;
+  } else if(step === 2){
+    const name = document.getElementById('wiz-shop-name').value.trim();
+    if(!name){showToastRaw('Digite o nome do negócio',true);return;}
+    document.getElementById('wizard-step-2').style.display='none';
+    document.getElementById('wizard-step-3').style.display='block';
+  }
+}
+
+function wizardBack(step){
+  if(step === 1){
+    document.getElementById('wizard-step-2').style.display='none';
+    document.getElementById('wizard-step-1').style.display='block';
+  } else if(step === 2){
+    document.getElementById('wizard-step-3').style.display='none';
+    document.getElementById('wizard-step-2').style.display='block';
+  }
+}
+
+function wizardFinish(){
+  const pw1 = document.getElementById('wiz-pw1').value;
+  const pw2 = document.getElementById('wiz-pw2').value;
+  if(pw1.length < 4){showToastRaw('Senha deve ter ao menos 4 caracteres',true);return;}
+  if(pw1 !== pw2){showToastRaw('As senhas não conferem',true);return;}
+
+  const settings = loadSettings();
+  settings.shopName = document.getElementById('wiz-shop-name').value.trim() || 'Meu Negócio';
+  settings.barberName = document.getElementById('wiz-barber-name').value.trim() || 'Profissional';
+  settings.waNumber = document.getElementById('wiz-wa-number').value.replace(/\D/g,'');
+  settings.bizType = wizardBizType.id;
+  persistSettings(settings);
+  setAdminPw(pw1);
+
+  document.getElementById('setup-wizard').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  bootApp();
+}
+
+function checkPwStrength(inputId, barId){
+  const pw = document.getElementById(inputId).value;
+  const bar = document.getElementById(barId);
+  let score = 0;
+  if(pw.length >= 4) score++;
+  if(pw.length >= 8) score++;
+  if(/[0-9]/.test(pw)) score++;
+  if(/[A-Z]/.test(pw)||/[!@#$%]/.test(pw)) score++;
+  const colors = ['#b03030','#c87010','#d4a843','#2d7a4f'];
+  const widths = ['25%','50%','75%','100%'];
+  bar.style.width = score ? widths[score-1] : '0';
+  bar.style.background = score ? colors[score-1] : '#3a3a3a';
+}
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+const DAYS_PT=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const MONTHS_PT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function getBizType(id){ return BUSINESS_TYPES.find(b=>b.id===id)||BUSINESS_TYPES[0]; }
+
+function generateSlots(settings){
+  const slots=[];
+  const[sh,sm]=settings.startTime.split(':').map(Number);
+  const[eh,em]=settings.endTime.split(':').map(Number);
+  const iv=parseInt(settings.intervalMin);
+  let cur=sh*60+sm,end=eh*60+em,ls=null,le=null;
+  if(settings.lunchBreak!=='none'){
+    const[a,b]=settings.lunchBreak.split('-');
+    const[lsh,lsm]=a.split(':').map(Number);const[leh,lem]=b.split(':').map(Number);
+    ls=lsh*60+lsm;le=leh*60+lem;
+  }
+  while(cur<end){
+    if(ls!==null&&cur>=ls&&cur<le){cur+=iv;continue;}
+    slots.push(`${String(Math.floor(cur/60)).padStart(2,'0')}:${String(cur%60).padStart(2,'0')}`);
+    cur+=iv;
+  }
+  return slots;
+}
+
+function getWeekDays(){
+  const settings=loadSettings(),days=[],now=new Date();
+  let i=0;
+  while(days.length<6&&i<30){
+    const d=new Date(now);d.setDate(now.getDate()+i);
+    const dow=d.getDay(),key=d.toISOString().slice(0,10);
+    if(settings.workDays.includes(dow))
+      days.push({date:d,key,name:DAYS_PT[dow],label:`${d.getDate()} ${MONTHS_PT[d.getMonth()]}`});
+    i++;
+  }
+  return days;
+}
+
+function slotDateTime(dayKey,time){
+  const[h,m]=time.split(':').map(Number);
+  const d=new Date(dayKey+'T00:00:00');d.setHours(h,m,0,0);return d;
+}
+
+function isShopOpen(){
+  const settings=loadSettings();
+  const now=new Date(),dow=now.getDay();
+  if(!settings.workDays.includes(dow)) return false;
+  if(settings.offDates.includes(now.toISOString().slice(0,10))) return false;
+  if(settings.locked) return false;
+  const[sh,sm]=settings.startTime.split(':').map(Number);
+  const[eh,em]=settings.endTime.split(':').map(Number);
+  const mins=now.getHours()*60+now.getMinutes();
+  return mins>=sh*60+sm&&mins<eh*60+em;
+}
+
+function getFreeSlots(dayKey){
+  const db=loadDB(),settings=loadSettings();
+  const shopSlots=generateSlots(settings);
+  const dayAppts=db.appointments[dayKey]||{};
+  const now=new Date(),todayKey=now.toISOString().slice(0,10);
+  if(settings.offDates.includes(dayKey)) return[];
+  if(settings.locked&&dayKey===todayKey) return[];
+  return shopSlots.filter(time=>{
+    if(dayAppts[time]){
+      if(dayAppts[time].cancelled) return true;
+      return !!dayAppts[time].freed;
+    }
+    if(dayKey===todayKey){if(slotDateTime(dayKey,time)<now) return false;}
+    return true;
+  });
+}
+
+function isJustFreed(dayKey,time){
+  const db=loadDB(),appt=db.appointments[dayKey]?.[time];
+  if(!appt) return false;
+  if(appt.freed) return(Date.now()-appt.freedAt)<5*60*1000;
+  if(appt.cancelled) return(Date.now()-appt.cancelledAt)<5*60*1000;
+  return false;
+}
+
+function genCode(){return Math.random().toString(36).slice(2,6).toUpperCase();}
+
+// ═══════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════
+let currentDay=null,selectedSlot=null,lastBooking=null;
+
+function showScreen(id){
+  document.querySelectorAll('#main-app .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  LANDING PAGE
+// ═══════════════════════════════════════════════════════
+function renderLanding(){
+  const settings=loadSettings();
+  const biz=getBizType(settings.bizType);
+  document.getElementById('header-shop-name').textContent=settings.shopName;
+  document.getElementById('header-biz-type').textContent=biz.label;
+  document.getElementById('hero-shop-name').textContent=settings.shopName;
+  document.getElementById('hero-barber-name').textContent=settings.barberName;
+  document.getElementById('hero-biz-label').textContent=biz.label;
+  document.getElementById('hero-address').textContent=settings.shopAddress||'';
+  document.getElementById('hero-address').style.display=settings.shopAddress?'block':'none';
+  document.title=settings.shopName+' • Agendio';
+  // accent color per biz type
+  document.documentElement.style.setProperty('--accent', biz.color);
+  document.querySelector('.landing-hero::before');
+  // open badge
+  const badge=document.getElementById('open-status-badge');
+  badge.innerHTML=isShopOpen()
+    ?`<div class="open-badge"><div class="open-dot"></div>Aberto agora</div>`
+    :`<div class="closed-badge">🔴 Fechado no momento</div>`;
+  // hours strip
+  const strip=document.getElementById('hours-strip');
+  strip.innerHTML=getWeekDays().slice(0,3).map(day=>{
+    const free=getFreeSlots(day.key);
+    return`<div class="hour-block"><div class="hday">${day.name.slice(0,3)}</div>${free.length} livres</div>`;
+  }).join('');
+  renderHotSlots();
+}
+
+function renderHotSlots(){
+  const section=document.getElementById('hot-slots-section');
+  const db=loadDB();
+  const todayKey=new Date().toISOString().slice(0,10);
+  const now=new Date();
+  const hot=[];
+  Object.keys(db.appointments[todayKey]||{}).forEach(time=>{
+    const appt=db.appointments[todayKey][time];
+    if(!appt) return;
+    const isHot=(appt.freed&&(Date.now()-appt.freedAt)<10*60*1000)||(appt.cancelled&&(Date.now()-appt.cancelledAt)<10*60*1000);
+    if(isHot&&slotDateTime(todayKey,time)>now) hot.push(time);
+  });
+  if(!hot.length){section.style.display='none';return;}
+  section.style.display='block';
+  section.innerHTML=`<div class="hot-slots"><div class="hot-slots-title">🔥 Horários disponíveis agora — Hoje</div>${hot.map(t=>`<div class="hot-slot-item"><div><span class="hot-slot-time">${t}</span> <span class="hot-slot-label">⚡ Acabou de abrir</span></div><button class="book-now-btn" onclick="quickBook('${todayKey}','${t}')">Agendar agora</button></div>`).join('')}</div>`;
+}
+
+function quickBook(dayKey,time){
+  const day=getWeekDays().find(d=>d.key===dayKey);if(!day) return;
+  currentDay=day;selectedSlot=time;
+  document.getElementById('booking-summary').innerHTML=`<strong>📅 Dia:</strong> ${day.name}, ${day.label}<br><strong>🕐 Horário:</strong> ${time}`;
+  document.getElementById('client-name').value='';document.getElementById('client-phone').value='';
+  showScreen('screen-form');
+}
+
+// ═══════════════════════════════════════════════════════
+//  DAYS & SLOTS
+// ═══════════════════════════════════════════════════════
+function renderDays(){
+  const grid=document.getElementById('days-grid');
+  const days=getWeekDays(),settings=loadSettings();
+  const todayKey=new Date().toISOString().slice(0,10);
+  const banner=document.getElementById('lock-banner');
+  settings.locked?banner.classList.add('visible'):banner.classList.remove('visible');
+  grid.innerHTML='';
+  if(!days.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--mid);padding:26px 0;">Configure os dias de trabalho no painel admin</div>`;return;}
+  days.forEach(day=>{
+    const isOff=settings.offDates.includes(day.key);
+    const isLocked=settings.locked&&day.key===todayKey;
+    const free=(!isOff&&!isLocked)?getFreeSlots(day.key):[];
+    const hasAny=free.length>0;
+    const justFreed=free.some(t=>isJustFreed(day.key,t));
+    const card=document.createElement('div');
+    let cls='day-card'+(isOff?' day-off':isLocked?' locked-day':!hasAny?' no-slots':justFreed?' has-available':'');
+    card.className=cls;
+    let status=isOff?'Folga':isLocked?'🔒 Fechado hoje':!hasAny?'Sem horários':`<span>${free.length}</span> horários livres`;
+    card.innerHTML=`<div class="day-name">${day.name}</div><div class="day-date">${day.label}</div><div class="slot-count">${status}</div>`;
+    if(hasAny)card.onclick=()=>openDay(day);
+    grid.appendChild(card);
+  });
+}
+
+function openDay(day){
+  currentDay=day;selectedSlot=null;
+  document.getElementById('slots-day-title').textContent=day.name;
+  document.getElementById('slots-day-date').textContent=day.label;
+  renderSlots();showScreen('screen-slots');
+}
+
+function renderSlots(){
+  const grid=document.getElementById('slots-grid');
+  const free=getFreeSlots(currentDay.key);
+  grid.innerHTML='';
+  if(!free.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--mid);padding:16px 0;">Sem horários disponíveis</div>`;}
+  free.forEach(time=>{
+    const freed=isJustFreed(currentDay.key,time);
+    const btn=document.createElement('button');
+    btn.className='slot-btn'+(freed?' just-freed':'');
+    btn.textContent=time;btn.onclick=()=>selectSlot(time,btn);
+    grid.appendChild(btn);
+  });
+  document.getElementById('btn-continue-slots').disabled=true;
+}
+
+function selectSlot(time,btn){
+  selectedSlot=time;
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');document.getElementById('btn-continue-slots').disabled=false;
+}
+
+function showFormScreen(){
+  document.getElementById('booking-summary').innerHTML=`<strong>📅 Dia:</strong> ${currentDay.name}, ${currentDay.label}<br><strong>🕐 Horário:</strong> ${selectedSlot}`;
+  document.getElementById('client-name').value='';document.getElementById('client-phone').value='';
+  showScreen('screen-form');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONFIRM BOOKING
+// ═══════════════════════════════════════════════════════
+function confirmBooking(){
+  const name=document.getElementById('client-name').value.trim();
+  const phone=document.getElementById('client-phone').value.trim();
+  if(!name){showToast('Digite seu nome',true);return;}
+  if(!phone){showToast('Digite seu telefone',true);return;}
+  const db=loadDB();
+  if(!db.appointments[currentDay.key]) db.appointments[currentDay.key]={};
+  const existing=db.appointments[currentDay.key][selectedSlot];
+  if(existing&&!existing.freed&&!existing.cancelled){showToast('Horário ocupado 😬',true);showScreen('screen-slots');renderSlots();return;}
+  const code=genCode();
+  db.appointments[currentDay.key][selectedSlot]={name,phone,bookedAt:Date.now(),arrived:false,freed:false,freedAt:null,countdownStart:null,cancelled:false,cancelledAt:null,code};
+  saveDB(db);
+  lastBooking={name,phone,day:currentDay,slot:selectedSlot,code};
+  const settings=loadSettings();
+  const biz=getBizType(settings.bizType);
+  document.getElementById('success-details').innerHTML=`
+    <div class="row"><span>Cliente</span><span>${name}</span></div>
+    <div class="row"><span>Telefone</span><span>${phone}</span></div>
+    <div class="row"><span>Dia</span><span>${currentDay.name}, ${currentDay.label}</span></div>
+    <div class="row"><span>Horário</span><span>${selectedSlot}</span></div>
+    <div class="row"><span>${biz.label}</span><span>${settings.shopName}</span></div>`;
+  document.getElementById('cancel-code-display').textContent=code;
+  const notice=document.getElementById('reminder-notice');
+  notice.style.display=(settings.rem1h&&settings.waNumber)?'block':'none';
+  showScreen('screen-success');
+  showToast('Agendamento confirmado! ✅');
+}
+
+// ═══════════════════════════════════════════════════════
+//  WHATSAPP
+// ═══════════════════════════════════════════════════════
+function openWhatsApp(){
+  if(!lastBooking) return;
+  const settings=loadSettings();
+  const biz=getBizType(settings.bizType);
+  const{name,day,slot,code}=lastBooking;
+  const msg=`Olá! Acabei de agendar um(a) *${biz.service}* em *${settings.shopName}*.\n\n${biz.icon} *${day.name}, ${day.label} às ${slot}*\nNome: ${name}\nCódigo: ${code}\n\nAguardo confirmação!`;
+  const waNum=settings.waNumber||'';
+  const url=waNum?`https://wa.me/55${waNum}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CANCELLATION
+// ═══════════════════════════════════════════════════════
+function showCancelScreen(){
+  document.getElementById('cancel-code-input').value='';
+  document.getElementById('cancel-result').innerHTML='';
+  showScreen('screen-cancel');
+}
+
+function processCancellation(){
+  const inputCode=document.getElementById('cancel-code-input').value.trim().toUpperCase();
+  if(!inputCode||inputCode.length<4){showToast('Digite o código completo',true);return;}
+  const db=loadDB();let found=false;
+  Object.keys(db.appointments).forEach(dayKey=>{
+    Object.keys(db.appointments[dayKey]).forEach(time=>{
+      const appt=db.appointments[dayKey][time];
+      if(!appt||appt.cancelled||appt.arrived) return;
+      if(appt.code===inputCode){
+        found=true;
+        const diff=slotDateTime(dayKey,time).getTime()-Date.now();
+        if(diff<30*60*1000&&diff>0){
+          document.getElementById('cancel-result').innerHTML=`<div style="background:#2a1010;border:1px solid var(--red);border-radius:8px;padding:13px;font-size:13px;color:#e08080;">⚠️ Cancelamento não permitido — faltam menos de 30 minutos.</div>`;
+          return;
+        }
+        db.appointments[dayKey][time].cancelled=true;db.appointments[dayKey][time].cancelledAt=Date.now();
+        saveDB(db);
+        const[y,m,d]=dayKey.split('-');
+        document.getElementById('cancel-result').innerHTML=`<div style="background:#0d2a1a;border:1px solid var(--green);border-radius:8px;padding:13px;font-size:13px;color:#80e0a0;">✅ Cancelado com sucesso! Horário <strong>${time}</strong> de ${d}/${m} foi liberado.</div>`;
+        renderDays();renderLanding();showToast('Horário cancelado e liberado');
+      }
+    });
+  });
+  if(!found) document.getElementById('cancel-result').innerHTML=`<div style="background:#2a1010;border:1px solid var(--red);border-radius:8px;padding:13px;font-size:13px;color:#e08080;">❌ Código não encontrado.</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN AUTH
+// ═══════════════════════════════════════════════════════
+function goToLogin(){if(sessionStorage.getItem('af_ok'))showAdminPanel();else showScreen('screen-login');}
+function adminLogin(){
+  const pw=document.getElementById('admin-password').value;
+  if(pw===getAdminPw()){sessionStorage.setItem('af_ok','1');showAdminPanel();}
+  else showToast('Senha incorreta',true);
+}
+function adminLogout(){sessionStorage.removeItem('af_ok');showScreen('screen-landing');}
+
+// ═══════════════════════════════════════════════════════
+//  CHANGE PASSWORD
+// ═══════════════════════════════════════════════════════
+function changePassword(){
+  const cur=document.getElementById('pw-current').value;
+  const nw=document.getElementById('pw-new').value;
+  const conf=document.getElementById('pw-confirm').value;
+  if(cur!==getAdminPw()){showToast('Senha atual incorreta',true);return;}
+  if(nw.length<4){showToast('Nova senha muito curta (mín. 4)',true);return;}
+  if(nw!==conf){showToast('As senhas não conferem',true);return;}
+  setAdminPw(nw);
+  document.getElementById('pw-current').value='';
+  document.getElementById('pw-new').value='';
+  document.getElementById('pw-confirm').value='';
+  document.getElementById('pw-bar2').style.width='0';
+  showToast('✅ Senha alterada com sucesso!');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN PANEL
+// ═══════════════════════════════════════════════════════
+let adminDaySelected=null,currentAdminTab='agenda';
+
+function showAdminPanel(){
+  const days=getWeekDays();
+  if(!adminDaySelected&&days.length) adminDaySelected=days[0].key;
+  switchAdminTab(currentAdminTab);showScreen('screen-admin');
+}
+
+function switchAdminTab(tab,btnEl){
+  currentAdminTab=tab;
+  document.querySelectorAll('.admin-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btnEl)btnEl.classList.add('active');
+  else{const idx=['agenda','lock','reminder','settings','security'].indexOf(tab);const btns=document.querySelectorAll('.admin-nav-btn');if(btns[idx])btns[idx].classList.add('active');}
+  ['agenda','lock','reminder','settings','security'].forEach(t=>{document.getElementById('admin-tab-'+t).style.display=t===tab?'block':'none';});
+  if(tab==='agenda')renderAgendaTab();
+  if(tab==='lock')renderLockTab();
+  if(tab==='reminder')renderReminderTab();
+  if(tab==='settings')renderSettingsTab();
+}
+
+function renderAgendaTab(){
+  const days=getWeekDays(),settings=loadSettings();
+  const tabs=document.getElementById('admin-day-tabs');
+  tabs.innerHTML='';
+  days.forEach(day=>{
+    const t=document.createElement('div');
+    const isOff=settings.offDates.includes(day.key);
+    t.className='day-tab'+(day.key===adminDaySelected?' active':'')+(isOff?' is-off':'');
+    t.textContent=day.name.slice(0,3)+' '+day.date.getDate();
+    t.onclick=()=>{adminDaySelected=day.key;renderAgendaTab();};
+    tabs.appendChild(t);
+  });
+  renderAdminAppointments();
+}
+
+function renderAdminAppointments(){
+  const db=loadDB(),settings=loadSettings();
+  const shopSlots=generateSlots(settings);
+  const appts=db.appointments[adminDaySelected]||{};
+  const container=document.getElementById('admin-appointments');container.innerHTML='';
+  if(settings.offDates.includes(adminDaySelected)){container.innerHTML=`<div class="empty-state"><div class="icon">🚫</div>Dia de folga</div>`;return;}
+  const booked=shopSlots.filter(t=>appts[t]&&!appts[t].freed);
+  if(!booked.length){container.innerHTML=`<div class="empty-state"><div class="icon">📋</div>Nenhum agendamento neste dia</div>`;return;}
+  booked.forEach(time=>{
+    const appt=appts[time];
+    const card=document.createElement('div');
+    card.className='appointment-card'+(appt.arrived?' arrived':appt.cancelled?' cancelled-card':'');
+    let actionHtml='';
+    if(appt.cancelled)actionHtml=`<span class="cancelled-badge">✗ Cancelado</span>`;
+    else if(appt.arrived)actionHtml=`<span class="arrived-badge">✓ Chegou</span>`;
+    else{
+      const cdInfo=getCountdownInfo(appt);
+      const cdHtml=cdInfo.active?`<span class="countdown-badge" id="cd-${adminDaySelected}-${time.replace(':','')}">⏱ ${cdInfo.label}</span>`:'';
+      actionHtml=`${cdHtml}<button class="arrived-btn" onclick="markArrived('${adminDaySelected}','${time}')">✓ Chegou</button>`;
+    }
+    const waLink=settings.waNumber?`<a href="https://wa.me/55${settings.waNumber}?text=${encodeURIComponent(`Olá ${appt.name}! Lembrete: seu ${getBizType(settings.bizType).service} em ${settings.shopName} é hoje às ${time}. Te esperamos! ${getBizType(settings.bizType).icon}`)}" target="_blank" style="font-size:11px;color:var(--wa);text-decoration:none;">📲 Lembrete WA</a>`:'';
+    card.innerHTML=`<div class="time-badge">${time}</div><div class="client-name">${appt.name}</div><div class="client-phone">📱 ${appt.phone}</div><div class="card-bottom"><div style="display:flex;flex-direction:column;gap:2px;">${waLink}<span style="font-size:10px;color:var(--mid);">Ag. ${formatRelativeTime(appt.bookedAt)}</span></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">${actionHtml}</div></div>`;
+    container.appendChild(card);
+  });
+}
+
+function getCountdownInfo(appt){
+  if(!appt.countdownStart) return{active:false};
+  const rem=NO_SHOW_TIMEOUT-(Date.now()-appt.countdownStart);
+  if(rem<=0) return{active:false};
+  return{active:true,label:`${Math.floor(rem/60000)}:${String(Math.floor((rem%60000)/1000)).padStart(2,'0')}`};
+}
+function markArrived(dayKey,time){
+  const db=loadDB();if(!db.appointments[dayKey]?.[time]) return;
+  db.appointments[dayKey][time].arrived=true;db.appointments[dayKey][time].countdownStart=null;
+  saveDB(db);renderAdminAppointments();showToast('✓ Marcado como chegou!');
+}
+function formatRelativeTime(ts){
+  const diff=Date.now()-ts;
+  if(diff<60000) return 'agora';
+  if(diff<3600000) return `há ${Math.floor(diff/60000)}min`;
+  return `há ${Math.floor(diff/3600000)}h`;
+}
+
+function renderLockTab(){
+  const settings=loadSettings();
+  const box=document.getElementById('lock-box-container');
+  if(settings.locked){
+    const since=settings.lockedSince?new Date(settings.lockedSince).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+    box.innerHTML=`<div class="lock-box"><h3>🔒 Agenda Bloqueada</h3><div class="lock-status"><div class="lock-dot red"></div>Bloqueada desde ${since}</div><p>Nenhum novo agendamento pode ser feito. Agendamentos existentes continuam confirmados.</p><button class="btn btn-green" onclick="toggleLock(false)">✅ Reabrir Agenda</button></div><div style="background:var(--smoke);border-radius:10px;padding:13px;margin-top:9px;font-size:12px;color:var(--mid);line-height:1.5;">💡 O bloqueio não cancela agendamentos existentes — apenas impede novos.</div>`;
+  } else {
+    box.innerHTML=`<div class="lock-box unlocked"><h3>Controle de Disponibilidade</h3><div class="lock-status"><div class="lock-dot"></div>Agenda aberta normalmente</div><p>Use o bloqueio de emergência para pausar novos agendamentos temporariamente.</p><button class="btn btn-danger" onclick="toggleLock(true)">🔒 Fechar Agenda Agora</button></div><div style="background:var(--smoke);border-radius:10px;padding:13px;margin-top:9px;font-size:12px;color:var(--mid);line-height:1.5;">💡 Útil para emergências, saída inesperada ou qualquer imprevisto.</div>`;
+  }
+}
+function toggleLock(lock){
+  const settings=loadSettings();settings.locked=lock;settings.lockedSince=lock?Date.now():null;
+  persistSettings(settings);renderLockTab();renderDays();renderLanding();
+  showToast(lock?'🔒 Agenda fechada':'✅ Agenda reaberta!');
+}
+
+function renderReminderTab(){
+  const settings=loadSettings();
+  document.getElementById('rem-1h').checked=settings.rem1h!==false;
+  document.getElementById('rem-morning').checked=!!settings.remMorning;
+  document.getElementById('wa-number').value=settings.waNumber||'';
+}
+function saveReminderSettings(){
+  const settings=loadSettings();
+  settings.rem1h=document.getElementById('rem-1h').checked;
+  settings.remMorning=document.getElementById('rem-morning').checked;
+  settings.waNumber=document.getElementById('wa-number').value.replace(/\D/g,'');
+  persistSettings(settings);showToast('✅ Configurações salvas!');
+}
+
+function renderSettingsTab(){
+  const settings=loadSettings();
+  const DAY_NAMES=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  // Fill biz type select
+  const sel=document.getElementById('biz-type-select');
+  sel.innerHTML='';
+  BUSINESS_TYPES.forEach(bt=>{
+    const o=document.createElement('option');
+    o.value=bt.id;o.textContent=bt.icon+' '+bt.label;
+    if(bt.id===settings.bizType) o.selected=true;
+    sel.appendChild(o);
+  });
+  document.getElementById('shop-name').value=settings.shopName;
+  document.getElementById('barber-name').value=settings.barberName;
+  document.getElementById('shop-address').value=settings.shopAddress||'';
+  const wdg=document.getElementById('work-days-grid');wdg.innerHTML='';
+  [1,2,3,4,5,6,0].forEach(dow=>{
+    const d=document.createElement('div');
+    d.className='day-toggle'+(settings.workDays.includes(dow)?' on':'');
+    d.textContent=DAY_NAMES[dow];d.dataset.dow=dow;
+    d.onclick=()=>d.classList.toggle('on');wdg.appendChild(d);
+  });
+  document.getElementById('work-start').value=settings.startTime;
+  document.getElementById('work-end').value=settings.endTime;
+  document.getElementById('slot-interval').value=settings.intervalMin;
+  document.getElementById('lunch-break').value=settings.lunchBreak;
+  renderOffDates(settings.offDates);
+}
+
+function renderOffDates(offDates){
+  const list=document.getElementById('off-dates-list');list.innerHTML='';
+  if(!offDates.length){list.innerHTML=`<p style="font-size:12px;color:var(--mid);margin-bottom:7px;">Nenhuma folga cadastrada</p>`;return;}
+  [...offDates].sort().forEach(d=>{
+    const[y,m,day]=d.split('-');
+    const item=document.createElement('div');item.className='off-date-item';
+    item.innerHTML=`<span>🚫 ${day}/${m}/${y}</span><button class="remove-btn" onclick="removeOffDate('${d}')">×</button>`;
+    list.appendChild(item);
+  });
+}
+function addOffDate(){
+  const val=document.getElementById('new-off-date').value;
+  if(!val){showToast('Selecione uma data',true);return;}
+  const settings=loadSettings();
+  if(settings.offDates.includes(val)){showToast('Data já cadastrada',true);return;}
+  settings.offDates.push(val);persistSettings(settings);renderOffDates(settings.offDates);
+  document.getElementById('new-off-date').value='';showToast('Folga adicionada!');
+}
+function removeOffDate(d){
+  const settings=loadSettings();settings.offDates=settings.offDates.filter(x=>x!==d);
+  persistSettings(settings);renderOffDates(settings.offDates);showToast('Removido');
+}
+function saveSettings(){
+  const settings=loadSettings();
+  settings.bizType=document.getElementById('biz-type-select').value;
+  settings.shopName=document.getElementById('shop-name').value.trim()||'Meu Negócio';
+  settings.barberName=document.getElementById('barber-name').value.trim()||'Profissional';
+  settings.shopAddress=document.getElementById('shop-address').value.trim();
+  const toggles=document.querySelectorAll('.day-toggle');settings.workDays=[];
+  toggles.forEach(t=>{if(t.classList.contains('on'))settings.workDays.push(parseInt(t.dataset.dow));});
+  settings.startTime=document.getElementById('work-start').value;
+  settings.endTime=document.getElementById('work-end').value;
+  settings.intervalMin=parseInt(document.getElementById('slot-interval').value);
+  settings.lunchBreak=document.getElementById('lunch-break').value;
+  if(settings.startTime>=settings.endTime){showToast('Horário de início deve ser antes do fim',true);return;}
+  if(!settings.workDays.length){showToast('Selecione ao menos um dia',true);return;}
+  persistSettings(settings);renderDays();renderLanding();
+  showToast('✅ Configurações salvas!');
+}
+
+// ═══════════════════════════════════════════════════════
+//  NO-SHOW TIMER
+// ═══════════════════════════════════════════════════════
+function checkNoShows(){
+  const db=loadDB(),now=Date.now(),todayKey=new Date().toISOString().slice(0,10);
+  let changed=false;
+  Object.keys(db.appointments[todayKey]||{}).forEach(time=>{
+    const appt=db.appointments[todayKey][time];
+    if(!appt||appt.arrived||appt.freed||appt.cancelled) return;
+    const slotMs=slotDateTime(todayKey,time).getTime();
+    if(now>=slotMs&&!appt.countdownStart){db.appointments[todayKey][time].countdownStart=slotMs;changed=true;}
+    if(appt.countdownStart&&(now-appt.countdownStart)>=NO_SHOW_TIMEOUT){
+      db.appointments[todayKey][time].freed=true;db.appointments[todayKey][time].freedAt=now;
+      changed=true;showToast(`⚡ ${time} liberado — cliente não chegou`);
+    }
+  });
+  if(changed){saveDB(db);renderDays();renderLanding();if(document.getElementById('screen-admin').classList.contains('active')&&currentAdminTab==='agenda')renderAdminAppointments();}
+}
+
+function updateCountdowns(){
+  const todayKey=new Date().toISOString().slice(0,10);
+  const db=loadDB();
+  Object.keys(db.appointments[todayKey]||{}).forEach(time=>{
+    const appt=db.appointments[todayKey][time];
+    if(!appt||appt.arrived||appt.freed||appt.cancelled||!appt.countdownStart) return;
+    const el=document.getElementById(`cd-${todayKey}-${time.replace(':','')}`);
+    if(!el) return;
+    const info=getCountdownInfo(appt);if(info.active)el.textContent=`⏱ ${info.label}`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg,warn=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=warn?'warn':'';t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3400);
+}
+function showToastRaw(msg,warn=false){
+  // fallback for wizard (before main-app is visible)
+  alert(msg);
+}
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+function bootApp(){
+  renderLanding();renderDays();
+  setInterval(checkNoShows,15000);
+  setInterval(updateCountdowns,1000);
+  setInterval(()=>{renderDays();renderLanding();},60000);
+  checkNoShows();
+}
+
+// Entry point
+if(isSetupDone()){
+  document.getElementById('setup-wizard').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  bootApp();
+} else {
+  document.getElementById('setup-wizard').style.display='flex';
+  document.getElementById('main-app').style.display='none';
+  initWizard();
+}
+</script>
+</body>
+</html>
